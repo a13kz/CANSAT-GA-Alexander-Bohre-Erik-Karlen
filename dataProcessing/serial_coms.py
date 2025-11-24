@@ -7,20 +7,19 @@ active_port = ""
 ports = serial.tools.list_ports.grep('USB')
 path = 'C:/Users/alexander.bohre/Documents/Arduino/gymnasie_arbete/collected_data/'
 today = datetime.date.today()
-print(today)
+current_time = datetime.datetime.now().strftime("%H:%M:%S")
+
 for p in ports:
     active_port = p.device
     print(os.path.isfile(path+str(today)+'.txt'))
-    now = datetime.datetime.now()
     ser = serial.Serial(active_port, 115200)
 while True:     
     line=str(ser.readline())
     arr = line[2:][:-5].split()
     print(arr)
-    with open(path+'/temps/'+str(today)+'temp'+'.txt', "a") as f:
-        f.write(arr[0]+'\n')
+    with open(path+'/temperatures/'+str(today)+'temperature'+'.txt', "a") as f:
+        f.write(f'{arr[0]} {current_time} \n')
     with open(path+'/pressures/'+str(today)+'pressure'+'.txt', "a") as f:
-        f.write(arr[1]+'\n')
-
-
-
+        f.write(f'{arr[1]} {current_time} \n')
+    with open(path+'/altitudes/'+str(today)+'altitude'+'.txt', "a") as f:
+        f.write(f'{arr[2]} {current_time} \n')
