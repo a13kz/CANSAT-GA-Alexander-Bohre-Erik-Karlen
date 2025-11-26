@@ -1,8 +1,5 @@
 #include <SPI.h>
 #include <RH_RF69.h>
-#include <Wire.h>
-#include <Adafruit_BMP085.h>
-
 
 #define RF69_FREQ 868.0
 
@@ -14,8 +11,6 @@
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 int16_t packetnum = 0;
-
-Adafruit_BMP085 bmp;
 
 void setup() {
   // put your setup code here, to run once:
@@ -55,25 +50,17 @@ void setup() {
 
 void loop() {
   delay(1000);
-  char radiopacket[20];
-  dtostrf(bmp.readTemperature(),8,2,radiopacket);
-  itoa(packetnum++, radiopacket+5, 10);
-  Serial.print("Sending "); Serial.println(radiopacket);
-
-  // Send a message!
-  rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
-  rf69.waitPacketSent();
-
   // Now wait for a reply
   uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
-
+  Serial.println(len);
   if (rf69.waitAvailableTimeout(500)) {
     // Should be a reply message for us now
-    if (rf69.recv(buf, &len)) {
+  if (rf69.recv(buf, &len)) {
       Serial.print("Got a reply: ");
       Serial.println((char*)buf);
-    } else {
+  }
+      else {
       Serial.println("Receive failed");
     }
   } else {

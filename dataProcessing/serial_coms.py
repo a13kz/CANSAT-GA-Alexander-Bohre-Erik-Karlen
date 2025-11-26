@@ -25,13 +25,18 @@ while True:
     line=ser.readline().decode('latin1').strip()
     print(line)
     current_time = datetime.datetime.now().strftime("%H:%M:%S")
-    arr = line.split()
+    arr = line.split("|")
     print(arr)
-    if len(arr) == 3:
+    if len(arr) == 5:
         with open(f"{path}/temperatures/{str(today)}_{location}_temperature.txt", "a") as f:
-            f.write(f'{arr[0]} {current_time} \n')
-        with open(f"{path}/temperatures/{str(today)}_{location}_pressure.txt", "a") as f:
-            f.write(f'{arr[1]} {current_time} \n')
-        with open(f"{path}/temperatures/{str(today)}_{location}_altitude.txt", "a") as f:
-            f.write(f'{arr[2]} {current_time} \n')
+            f.write(f'{arr[0]} time: {current_time} \n')
+        with open(f"{path}/pressures/{str(today)}_{location}_pressure.txt", "a") as f:
+            f.write(f'{arr[1]} time: {current_time} \n')
+        with open(f"{path}/altitudes/{str(today)}_{location}_altitude.txt", "a") as f:
+            f.write(f'{arr[2]} time: {current_time} \n')
+        with open(f"{path}/accelerations/{str(today)}_{location}_acceleration.txt", "a") as f:
+            f.write(f'{arr[3]} time: {current_time} \n')
+        with open(f"{path}/rotations/{str(today)}_{location}_rotation.txt", "a") as f:
+            f.write(f'{arr[4]} time: {current_time} \n')
+
 
