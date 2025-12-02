@@ -25,13 +25,14 @@ Adafruit_BMP085 bmp;
 
 //instance of radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
+int16_t packetnum = 0; 
 
 void setup(void) {
   Serial.begin(115200);
-  while(!Serial)
+  radioSetup();
+  while(!Serial){
     delay(10);
-  //Serial.println("Serial start");
-
+  }
   //init
   if (!mpu.begin()){
     Serial.println("MPU6050 could not be found!");
@@ -116,7 +117,8 @@ void setup(void) {
 void loop() {
   // put your main code here, to run repeatedly:
   //MPU180Handling();
-  BMPHandling();
+  //BMPHandling();
+  radio();
 }
 
 void RFMHandling(){
@@ -208,9 +210,100 @@ void BMPHandling(){
 float celciusToKelvin(float temp){
   return temp+273.15;
 }
+String output1 = "";
+void test(){
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+  //output = (String(bmp.readTemperature(),2))+" | "+String(bmp.readPressure(),7)+" | "+(String(bmp.readAltitude(seaLevelPressure_hPa * 100),2))+" | Acceleration X: "+String(a.acceleration.x,2)+", Y: "+String(a.acceleration.y,2)+", Z: "+String(a.acceleration.z,2)+"m/s^2 | Rotation X: " +String(g.gyro.x,2)+ ", Y: " +String(g.gyro.y,2)+ ", Z: " +String(g.gyro.z,2)+" rad/s";
+  output1 = (String(bmp.readTemperature(),2))+" | "+String(bmp.readPressure(),7);
+  char radiopacket[20];
+  output1.toCharArray(radiopacket,20);
 
-void average_temp(){
-  //Serial.print(averageTemp/length)
-  //Serial.println(averagrAlt/length)
+  Serial.println(radiopacket);
 }
 
+String output = "";
+
+void radioSetup(){
+
+  pinMode(LED, OUTPUT);
+  pinMode(RFM69_RST, OUTPUT);
+  digitalWrite(RFM69_RST, LOW);
+
+  Serial.println("Feather RFM69 TX Test!");
+  Serial.println();
+
+  // manual reset
+  digitalWrite(RFM69_RST, HIGH);
+  delay(10);
+  digitalWrite(RFM69_RST, LOW);
+  delay(10);
+  
+  if (!rf69.init()) {
+    Serial.println("RFM69 radio init failed");
+    while (1);
+  }
+  Serial.println("RFM69 radio init OK!");
+  // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM (for low power module)
+  // No encryption
+  if (!bmp.begin())
+  {
+      Serial.println("BMP180 not found!");
+      while (1);
+  }
+  if (!rf69.setFrequency(RF69_FREQ)) {
+    Serial.println("setFrequency failed");
+  }
+
+  // If you are using a high power RF69 eg RFM69HW, you *must* set a Tx power with the
+  // ishighpowermodule flag set like this:
+  rf69.setTxPower(20, true);  // range from 14-20 for power, 2nd arg must be true for 69HCW
+
+  // The encryption key has to be the same as the one in the server
+  uint8_t key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+  rf69.setEncryptionKey(key);
+
+  Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
+
+}
+
+void radio(){
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+  delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
+  output = (String(bmp.readTemperature(),2))+" | "+String(bmp.readPressure(),7)+" | "+(String(bmp.readAltitude(seaLevelPressure_hPa * 100),2))+" | Acceleration X: "+String(a.acceleration.x,2)+", Y: "+String(a.acceleration.y,2)+", Z: "+String(a.acceleration.z,2)+"m/s^2 | Rotation X: " +String(g.gyro.x,2)+ ", Y: " +String(g.gyro.y,2)+ ", Z: " +String(g.gyro.z,2)+" rad/s";
+  char radiopacket[100];
+  output.toCharArray(radiopacket,100);
+  itoa(packetnum++, radiopacket+100, 10);
+  Serial.print("Sending "); Serial.println(radiopacket);
+
+  // Send a message!
+  rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
+  rf69.waitPacketSent();
+
+  // Now wait for a reply
+  uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+  uint8_t len = sizeof(buf);
+
+  if (rf69.waitAvailableTimeout(500)) {
+    // Should be a reply message for us now
+    if (rf69.recv(buf, &len)) {
+      Serial.print("Got a reply: ");
+      Serial.println((char*)buf);
+      Blink(LED, 50, 3); // blink LED 3 times, 50ms between blinks
+    } else {
+      Serial.println("Receive failed");
+    }
+  } else {
+    Serial.println("No reply, is another RFM69 listening?");
+  }
+}
+void Blink(byte pin, byte delay_ms, byte loops) {
+  while (loops--) {
+    digitalWrite(pin, HIGH);
+    delay(delay_ms);
+    digitalWrite(pin, LOW);
+    delay(delay_ms);
+  }
+}

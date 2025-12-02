@@ -10,9 +10,7 @@
 
 #include <SPI.h>
 #include <RH_RF69.h>
-#include <Wire.h>
-#include <Adafruit_BMP085.h>
-Adafruit_BMP085 bmp;
+
 /************ Radio Setup ***************/
 
 // Change to 434.0 or other frequency, must match RX's freq!
@@ -104,7 +102,7 @@ void setup() {
   delay(10);
   digitalWrite(RFM69_RST, LOW);
   delay(10);
-  
+
   if (!rf69.init()) {
     Serial.println("RFM69 radio init failed");
     while (1);
@@ -112,11 +110,6 @@ void setup() {
   Serial.println("RFM69 radio init OK!");
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM (for low power module)
   // No encryption
-  if (!bmp.begin())
-  {
-      Serial.println("BMP180 not found!");
-      while (1);
-  }
   if (!rf69.setFrequency(RF69_FREQ)) {
     Serial.println("setFrequency failed");
   }
@@ -131,14 +124,12 @@ void setup() {
   rf69.setEncryptionKey(key);
 
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
-
-
 }
 
 void loop() {
   delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
-  Serial.println(bmp.readTemperature());
-  char radiopacket[20] = "hello world#";
+
+  char radiopacket[20] = "Hello World #";
   itoa(packetnum++, radiopacket+13, 10);
   Serial.print("Sending "); Serial.println(radiopacket);
 
