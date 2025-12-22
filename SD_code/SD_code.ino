@@ -61,7 +61,7 @@ void setup() {
 }
 
 void loop() {
-  //myFile = SD.open("time.txt", FILE_WRITE);
-  //myFile.println(bmp.readTemperature());
-  //myFile.close();
+  myFile = SD.open(, FILE_WRITE);
+  myFile.println(bmp.readTemperature());
+  myFile.close();
 }
