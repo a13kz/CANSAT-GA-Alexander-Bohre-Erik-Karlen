@@ -241,8 +241,6 @@ void MPU180Handling(){
 }
 
 void BMPHandling(){
-  sensors_event_t a, g, temp;
-  mpu.getEvent(&a, &g, &temp);
   //Serial.println("BMP");
   //Serial.print("Temperature = ");
   Serial.print(bmp.readTemperature());
