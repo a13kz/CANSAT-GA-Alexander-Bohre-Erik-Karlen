@@ -9,9 +9,6 @@ ports = serial.tools.list_ports.grep('USB')
 path = 'C:/Users/alexander.bohre/Documents/Arduino/gymnasie_arbete/collected_data/'
 today = datetime.date.today()
 
-def assign_index(arr):
-    
-    return
 
 for p in ports:
     active_port = p.device
