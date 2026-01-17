@@ -1,11 +1,3 @@
-//Kod för att skriva på textfiler, skapa och förstöra textfiler.
-//Koppiling på Rasperry pi feather rp2040: 
-
-//3.3V och GND 
-//CLK på SDkort komponent går till SCK på rp2040
-//SO på komponent går till MISO på rp2040
-//SI på komponent går till MOSI på rp2040
-//CS på komponent gåår till RX på rp2040. Kan ändra men måste ändra chipSelect variabel också.
 
 #include <Wire.h>
 #include <Adafruit_MPU6050.h>
@@ -111,10 +103,10 @@ void setup() {
   Serial.println();
   delay(100);
   //Om example.txt existerar. Ta bort den och skapa den igen med texten Hej 123
-//char i = 0;
-//while (SD.exists("reading"+i+".txt")) {
-//  i+=1;
-//}
+char i = 0;
+while (SD.exists("reading"+i+".txt")) {
+  i+=1;
+}
   digitalWrite(13,LOW);
   delay(500);
   digitalWrite(13,HIGH);
