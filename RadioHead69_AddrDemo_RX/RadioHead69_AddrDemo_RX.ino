@@ -117,6 +117,7 @@ void setup() {
     Serial.println("setFrequency failed");
   }
 
+
   // If you are using a high power RF69 eg RFM69HW, you *must* set a Tx power with the
   // ishighpowermodule flag set like this:
   rf69.setTxPower(20, true);  // range from 14-20 for power, 2nd arg must be true for 69HCW
@@ -135,6 +136,7 @@ uint8_t data[] = "And hello back to you";
 uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
 
 void loop() {
+    Serial.println(rf69_manager.available());
   if (rf69_manager.available()) {
     // Wait for a message addressed to us from the client
     uint8_t len = sizeof(buf);
