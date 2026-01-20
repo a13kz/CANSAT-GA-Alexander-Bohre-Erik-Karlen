@@ -1,17 +1,25 @@
-
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
 #include <Wire.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <SD.h>
 #include <Adafruit_BMP085.h>
 #define seaLevelPressure_hPa 1013.25
+const int RX_Pin = 1;
+const int TX_Pin = 0;
+const int chipSelect = 9;
+const int GPS_Baud_Rate = 9600;
 
+TinyGPSPlus module;
 Adafruit_BMP085 bmp;
 Adafruit_MPU6050 mpu;
-const int chipSelect = 9;
+
 File file;
 
 void setup() {
+
+  // hardware serial com at 9600 baud
   Serial.begin(9600);
   delay(100);
 

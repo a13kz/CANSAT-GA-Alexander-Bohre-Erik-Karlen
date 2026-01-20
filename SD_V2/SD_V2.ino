@@ -1,12 +1,3 @@
-//Kod för att skriva på textfiler, skapa och förstöra textfiler.
-//Koppiling på Rasperry pi feather rp2040: 
-
-//3.3V och GND 
-//CLK på SDkort komponent går till SCK på rp2040
-//SO på komponent går till MISO på rp2040
-//SI på komponent går till MOSI på rp2040
-//CS på komponent gåår till RX på rp2040. Kan ändra men måste ändra chipSelect variabel också.
-
 #include <Wire.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
