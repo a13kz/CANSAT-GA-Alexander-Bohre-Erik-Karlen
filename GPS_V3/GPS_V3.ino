@@ -37,6 +37,22 @@ void loop()
   }
 }
 
+void displayLocation(){
+  if (gpsModule.location.isValid())
+  {
+    Serial.print("Latitude: ");
+    Serial.println(gpsModule.location.lat(), 6); //print latitude
+    Serial.print("Longitude: ");
+    Serial.println(gpsModule.location.lng(), 6); //print longitude
+    Serial.print("Altitude: ");
+    Serial.println(gpsModule.altitude.meters()); //print altitude
+  }
+  else
+  {
+    Serial.println("Location: Unavailable");
+  }
+}
+
 void displayGPSData()
 {
   if (gpsModule.location.isValid())
@@ -55,10 +71,10 @@ void displayGPSData()
   
   Serial.print("Current Date: ");
   if (gpsModule.date.isValid())
-  {
-    Serial.print(gpsModule.date.month());
+  {    
+    Serial.print(gpsModule.date.day());    
     Serial.print("/");
-    Serial.print(gpsModule.date.day());
+    Serial.print(gpsModule.date.month());
     Serial.print("/");
     Serial.println(gpsModule.date.year());
   }

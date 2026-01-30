@@ -18,70 +18,12 @@
 // Who am i? (client address)
 #define MY_ADDRESS   24
 
-// First 3 here are boards w/radio BUILT-IN. Boards using FeatherWing follow.
-#if defined (__AVR_ATmega32U4__)  // Feather 32u4 w/Radio
-  #define RFM69_CS    8
-  #define RFM69_INT   7
-  #define RFM69_RST   4
-  #define LED        13
+#define RFM69_CS   16
+#define RFM69_INT  21
+#define RFM69_RST  17
+#define WARNING_LED        LED_BUILTIN
+#define COM_LED  25
 
-#elif defined(ADAFRUIT_FEATHER_M0) || defined(ADAFRUIT_FEATHER_M0_EXPRESS) || defined(ARDUINO_SAMD_FEATHER_M0)  // Feather M0 w/Radio
-  #define RFM69_CS    8
-  #define RFM69_INT   3
-  #define RFM69_RST   4
-  #define LED        13
-
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_RP2040_RFM)  // Feather RP2040 w/Radio
-  #define RFM69_CS   16
-  #define RFM69_INT  21
-  #define RFM69_RST  17
-  #define LED        LED_BUILTIN
-
-#elif defined (__AVR_ATmega328P__)  // Feather 328P w/wing
-  #define RFM69_CS    4  //
-  #define RFM69_INT   3  //
-  #define RFM69_RST   2  // "A"
-  #define LED        13
-
-#elif defined(ESP8266)  // ESP8266 feather w/wing
-  #define RFM69_CS    2  // "E"
-  #define RFM69_INT  15  // "B"
-  #define RFM69_RST  16  // "D"
-  #define LED         0
-
-#elif defined(ARDUINO_ADAFRUIT_FEATHER_ESP32S2) || defined(ARDUINO_NRF52840_FEATHER) || defined(ARDUINO_NRF52840_FEATHER_SENSE)
-  #define RFM69_CS   10  // "B"
-  #define RFM69_INT   9  // "A"
-  #define RFM69_RST  11  // "C"
-  #define LED        13
-
-#elif defined(ESP32)  // ESP32 feather w/wing
-  #define RFM69_CS   33  // "B"
-  #define RFM69_INT  27  // "A"
-  #define RFM69_RST  13  // same as LED
-  #define LED        13
-
-#elif defined(ARDUINO_NRF52832_FEATHER)  // nRF52832 feather w/wing
-  #define RFM69_CS   11  // "B"
-  #define RFM69_INT  31  // "C"
-  #define RFM69_RST   7  // "A"
-  #define LED        17
-
-#endif
-
-/* Teensy 3.x w/wing
-#define RFM69_CS     10  // "B"
-#define RFM69_INT     4  // "C"
-#define RFM69_RST     9  // "A"
-#define RFM69_IRQN   digitalPinToInterrupt(RFM69_INT)
-*/
-
-/* WICED Feather w/wing
-#define RFM69_CS     PB4  // "B"
-#define RFM69_INT    PA15 // "C"
-#define RFM69_RST    PA4  // "A"
-#define RFM69_IRQN   RFM69_INT
-*/
 
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
@@ -93,7 +35,8 @@ void setup() {
   Serial.begin(115200);
   while (!Serial) delay(1); // Wait for Serial Console (comment out line if no computer)
 
-  pinMode(LED, OUTPUT);
+  pinMode(COM_LED, OUTPUT);
+  pinMode(WARNING_LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
 
@@ -149,14 +92,18 @@ void loop() {
       Serial.print(rf69.lastRssi());
       Serial.print("] : ");
       Serial.println((char*)buf);
-      Blink(LED, 40, 3); // blink LED 3 times, 40ms between blinks
+      Blink(COM_LED, 40, 3); // blink LED 3 times, 40ms between blinks
 
       // Send a reply back to the originator client
       if (!rf69_manager.sendtoWait(data, sizeof(data), from))
         Serial.println("Sending failed (no ack)");
     }
   }
+  else{
+    Blink(WARNING_LED, 1000, 5);
+  }
 }
+
 
 void Blink(byte pin, byte delay_ms, byte loops) {
   while (loops--) {

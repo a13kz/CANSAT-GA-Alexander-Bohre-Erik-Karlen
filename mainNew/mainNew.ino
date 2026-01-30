@@ -23,9 +23,12 @@ void setup() {
   Serial.begin(9600);
   delay(100);
 
+  gpsSerialPort.begin(GPS_Baud_Rate);
+
   pinMode(13,OUTPUT);
   digitalWrite(13,HIGH);
   delay(1000);
+  digitalWrite(13,LOW);
 
   Serial.print("Initializing SD card...");
 
@@ -123,44 +126,76 @@ while (SD.exists("reading"+i+".txt")) {
 }
 
 void loop() {
+  readWrite();
+
+}
+
+void displayLocation(){
+  if (module.location.isValid())
+  {
+    Serial.print("Latitude: ");
+    Serial.println(module.location.lat(), 6); //print latitude
+    Serial.print("Longitude: ");
+    Serial.println(module.location.lng(), 6); //print longitude
+    Serial.print("Altitude: ");
+    Serial.println(module.altitude.meters()); //print altitude
+  }
+  else
+  {
+    Serial.println("Location: Unavailable");
+  }
+  delay(100);
+}
+
+void readWrite(){
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   Serial.println("Reading...");
-  file = SD.open("reading.txt", FILE_WRITE);
-
-  file.print("Temperature = ");
-  file.print(bmp.readTemperature());
-  file.println(" *C");
-  file.print("Pressure = ");
-  file.print(bmp.readPressure());
-  file.println(" Pa");
-  file.print("Altitude = ");
-  file.print(bmp.readAltitude());
-  file.println(" meters");
-  file.print("Pressure at sealevel (calculated) = ");
-  file.print(bmp.readSealevelPressure());
-  file.println(" Pa");
-  file.print("Real altitude = ");
-  file.print(bmp.readAltitude(seaLevelPressure_hPa * 100));
-  file.println(" meters");
-  file.println();
-
-  file.print("Acceleration X: ");
-  file.print(a.acceleration.x);
-  file.print(", Y: ");
-  file.print(a.acceleration.y);
-  file.print(", Z: ");
-  file.print(a.acceleration.z);
-  file.println(" m/s^2");
-
-  file.print("Rotation X: ");
-  file.print(g.gyro.x);
-  file.print(", Y: ");
-  file.print(g.gyro.y);
-  file.print(", Z: ");
-  file.print(g.gyro.z);
-  file.println(" rad/s");
+  temp = SD.open("temp.txt", FILE_WRITE);
+  pressure = SD.open("pressure.txt", FILE_WRITE);
+  altitude = SD.open("altitude.txt", FILE_WRITE);
+  movement = SD.open("movement.txt", FILE_WRITE);
   
-  file.close();
+  temp.print("Temperature = ");
+  temp.print(bmp.readTemperature());
+  temp.println(" *C");
+  
+  pressure.print("Pressure = ");
+  pressure.print(bmp.readPressure());
+  pressure.println(" Pa");
+  pressure.println();
+  pressure.print("Pressure at sealevel (calculated) = ");
+  pressure.print(bmp.readSealevelPressure());
+  pressure.println(" Pa");
+  
+  altitude.print("Altitude = ");
+  altitude.print(bmp.readAltitude());
+  altitude.println(" meters");
+  altitude.println();
+  
+  altitude.print("Real altitude = ");
+  altitude.print(bmp.readAltitude(seaLevelPressure_hPa * 100));
+  altitude.println(" meters");
+
+  movement.print("Acceleration X: ");
+  movement.print(a.acceleration.x);
+  movement.print(", Y: ");
+  movement.print(a.acceleration.y);
+  movement.print(", Z: ");
+  movement.print(a.acceleration.z);
+  movement.println(" m/s^2");
+  movement.println();
+  movement.print("Rotation X: ");
+  movement.print(g.gyro.x);
+  movement.print(", Y: ");
+  movement.print(g.gyro.y);
+  movement.print(", Z: ");
+  movement.print(g.gyro.z);
+  movement.println(" rad/s");
+  
+  temp.close();
+  pressure.close();
+  altitude.close();
+  movement.close();
   delay(100);
 }
