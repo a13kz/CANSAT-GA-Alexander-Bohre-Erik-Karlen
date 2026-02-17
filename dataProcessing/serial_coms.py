@@ -6,6 +6,7 @@ import os.path
 
 active_port = ""
 ports = serial.tools.list_ports.grep('USB')
+#change to current directory
 path = 'C:/Users/alexander.bohre/Documents/Arduino/gymnasie_arbete/collected_data/'
 today = datetime.date.today()
 

@@ -113,7 +113,52 @@ void setup() {
   digitalWrite(13,LOW);
 }
 
-void loop() {
+void loop(){
+  SDWrite();
+  debugWrite();
+}
+void debugWrite(){
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  Serial.print("Temperature = ");
+  Serial.print(bmp.readTemperature());
+  Serial.println(" *C");
+  Serial.print("Pressure = ");
+  Serial.print(bmp.readPressure());
+  Serial.println(" Pa");
+  Serial.print("Altitude = ");
+  Serial.print(bmp.readAltitude());
+  Serial.println(" meters");
+  Serial.print("Pressure at sealevel (calculated) = ");
+  Serial.print(bmp.readSealevelPressure());
+  Serial.println(" Pa");
+  Serial.print("Real altitude = ");
+  Serial.print(bmp.readAltitude(seaLevelPressure_hPa * 100));
+  Serial.println(" meters");
+  Serial.println();
+
+  Serial.print("Acceleration X: ");
+  Serial.print(a.acceleration.x);
+  Serial.print(", Y: ");
+  Serial.print(a.acceleration.y);
+  Serial.print(", Z: ");
+  Serial.print(a.acceleration.z);
+  Serial.println(" m/s^2");
+
+  Serial.print("Rotation X: ");
+  Serial.print(g.gyro.x);
+  Serial.print(", Y: ");
+  Serial.print(g.gyro.y);
+  Serial.print(", Z: ");
+  Serial.print(g.gyro.z);
+  Serial.println(" rad/s");
+  
+  file.close();
+  delay(100);
+}
+
+void SDWrite() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   Serial.println("Reading...");

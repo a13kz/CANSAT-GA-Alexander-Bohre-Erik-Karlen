@@ -17,7 +17,6 @@
 //Adafruit_BMP085 bmp;
 //Adafruit_MPU6050 mpu;
 const int chipSelect = 9;
-const int breakPin = 25;
 File file;
 
 void setup() {
@@ -25,7 +24,6 @@ void setup() {
   delay(100);
 
   pinMode(13,OUTPUT);
-  pinMode(breakPin,INPUT);
   digitalWrite(13,HIGH);
   delay(1000);
 
@@ -46,19 +44,6 @@ int i = 0;
 void loop() {
   file = SD.open("reading.txt", FILE_WRITE);
   Serial.println("Reading...");
-  if(digitalRead(breakPin)){
-    Serial.println("press");
-    file.close();
-  }
-  else{
-    Serial.println("not pressed");
-  }
-  //
-  //
-  //file.write(i);
-  file.println(i);
-  i++;
-  Serial.println(i);
   file.close();
   delay(100);
 }
