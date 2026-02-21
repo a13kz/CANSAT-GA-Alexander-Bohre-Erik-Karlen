@@ -9,29 +9,14 @@
 #include <SPI.h>
 #include <RH_RF69.h>
 #include <RHReliableDatagram.h>
-#include <TinyGPS++.h>
-#include <SoftwareSerial.h>
 #include <Wire.h>
 #include <Adafruit_BMP085.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <SD.h>
 #define seaLevelPressure_hPa 1013.25
 
 /************ Radio Setup ***************/
-
-
-const int GPS_Baud_Rate = 9600;
-
-//BMP setup
-Adafruit_BMP085 bmp;
-
-// Instantiate TinyGPS++ object
-TinyGPSPlus gpsModule;
-
-// Define pins for SoftwareSerial
-const int RX_Pin = 1;
-const int TX_Pin = 0;
-
-// Create software serial port named "gpsSerialPort"
-SoftwareSerial gpsSerialPort(RX_Pin, TX_Pin);
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF69_FREQ 868.0
@@ -47,6 +32,12 @@ SoftwareSerial gpsSerialPort(RX_Pin, TX_Pin);
 #define RFM69_RST  17
 #define LED        LED_BUILTIN
 
+
+Adafruit_BMP085 bmp;
+Adafruit_MPU6050 mpu;
+const int chipSelect = 9;
+File file;
+
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
@@ -54,12 +45,92 @@ RH_RF69 rf69(RFM69_CS, RFM69_INT);
 RHReliableDatagram rf69_manager(rf69, MY_ADDRESS);
 
 int16_t packetnum = 0;  // packet counter, we increment per xmission
-//"40.6892° N, 74.0445° W"
+
 void setup() {
   Serial.begin(115200);
-  //gpsSerialPort.begin(GPS_Baud_Rate);
   //while (!Serial) delay(1); // Wait for Serial Console (comment out line if no computer)
+  Serial.print("Initializing SD card...");
 
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization failed. Things to check:");
+    Serial.println("1. is a card inserted?");
+    Serial.println("2. is your wiring correct?");
+    Serial.println("3. did you change the chipSelect pin to match your shield or module?");
+    Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
+    while (1);
+  }
+
+  Serial.println("initialization done.");
+
+  if (!bmp.begin()) {
+    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+    while (1) {}
+  }
+  if (!mpu.begin()) {
+  Serial.println("Failed to find MPU6050 chip");
+  while (1) {
+    delay(10);
+  }
+  }
+    mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  Serial.print("Accelerometer range set to: ");
+  switch (mpu.getAccelerometerRange()) {
+  case MPU6050_RANGE_2_G:
+    Serial.println("+-2G");
+    break;
+  case MPU6050_RANGE_4_G:
+    Serial.println("+-4G");
+    break;
+  case MPU6050_RANGE_8_G:
+    Serial.println("+-8G");
+    break;
+  case MPU6050_RANGE_16_G:
+    Serial.println("+-16G");
+    break;
+  }
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  Serial.print("Gyro range set to: ");
+  switch (mpu.getGyroRange()) {
+  case MPU6050_RANGE_250_DEG:
+    Serial.println("+- 250 deg/s");
+    break;
+  case MPU6050_RANGE_500_DEG:
+    Serial.println("+- 500 deg/s");
+    break;
+  case MPU6050_RANGE_1000_DEG:
+    Serial.println("+- 1000 deg/s");
+    break;
+  case MPU6050_RANGE_2000_DEG:
+    Serial.println("+- 2000 deg/s");
+    break;
+  }
+
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+  Serial.print("Filter bandwidth set to: ");
+  switch (mpu.getFilterBandwidth()) {
+  case MPU6050_BAND_260_HZ:
+    Serial.println("260 Hz");
+    break;
+  case MPU6050_BAND_184_HZ:
+    Serial.println("184 Hz");
+    break;
+  case MPU6050_BAND_94_HZ:
+    Serial.println("94 Hz");
+    break;
+  case MPU6050_BAND_44_HZ:
+    Serial.println("44 Hz");
+    break;
+  case MPU6050_BAND_21_HZ:
+    Serial.println("21 Hz");
+    break;
+  case MPU6050_BAND_10_HZ:
+    Serial.println("10 Hz");
+    break;
+  case MPU6050_BAND_5_HZ:
+    Serial.println("5 Hz");
+    break;
+  }
+  Serial.println();
   pinMode(LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
@@ -101,41 +172,54 @@ uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
 uint8_t data[] = "  OK";
 
 void loop(){
-  radio_loop();
-  //gps_loop();
+  radioLoop();
+  SDWrite();
 }
 
-void gps_loop(){
-    // Process incoming GPS data
-  while (gpsSerialPort.available() > 0)
-    if (gpsModule.encode(gpsSerialPort.read()))
-      displayLocation();
+void SDWrite() {
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+  Serial.println("Reading...");
+  file = SD.open("reading.txt", FILE_WRITE);
 
-  // Check if no GPS data has been received for 5 seconds
-  if (millis() > 5000 && gpsModule.charsProcessed() < 10)
-  {
-    Serial.println("Error: GPS module not detected");
-    while (true);
-  }
+  file.print("Temperature = ");
+  file.print(bmp.readTemperature());
+  file.println(" *C");
+  file.print("Pressure = ");
+  file.print(bmp.readPressure());
+  file.println(" Pa");
+  file.print("Altitude = ");
+  file.print(bmp.readAltitude());
+  file.println(" meters");
+  file.print("Pressure at sealevel (calculated) = ");
+  file.print(bmp.readSealevelPressure());
+  file.println(" Pa");
+  file.print("Real altitude = ");
+  file.print(bmp.readAltitude(seaLevelPressure_hPa * 100));
+  file.println(" meters");
+  file.println();
+
+  file.print("Acceleration X: ");
+  file.print(a.acceleration.x);
+  file.print(", Y: ");
+  file.print(a.acceleration.y);
+  file.print(", Z: ");
+  file.print(a.acceleration.z);
+  file.println(" m/s^2");
+
+  file.print("Rotation X: ");
+  file.print(g.gyro.x);
+  file.print(", Y: ");
+  file.print(g.gyro.y);
+  file.print(", Z: ");
+  file.print(g.gyro.z);
+  file.println(" rad/s");
+  
+  file.close();
+  delay(100);
 }
 
-void displayLocation(){
-  if (gpsModule.location.isValid())
-  {
-    Serial.print("Latitude: ");
-    Serial.println(gpsModule.location.lat(), 6); //print latitude
-    Serial.print("Longitude: ");
-    Serial.println(gpsModule.location.lng(), 6); //print longitude
-    Serial.print("Altitude: ");
-    Serial.println(gpsModule.altitude.meters()); //print altitude
-  }
-  else
-  {
-    Serial.println("Location: Unavailable");
-  }
-}
-
-void radio_loop() {
+void radioLoop() {
   delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
   char radiopacket[50];
   snprintf(radiopacket, sizeof(radiopacket),"T:%.2f", bmp.readTemperature());
@@ -162,7 +246,6 @@ void radio_loop() {
     Serial.println("Sending failed (no ack)");
   }
 }
-
 
 void Blink(byte pin, byte delay_ms, byte loops) {
   while (loops--) {

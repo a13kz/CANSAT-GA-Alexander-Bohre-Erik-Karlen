@@ -9,6 +9,8 @@
 #include <SPI.h>
 #include <RH_RF69.h>
 #include <RHReliableDatagram.h>
+#include <Wire.h>
+#include <Adafruit_BMP085.h>
 
 /************ Radio Setup ***************/
 
@@ -72,6 +74,8 @@
 
 #endif
 
+Adafruit_BMP085 bmp;
+
 /* Teensy 3.x w/wing
 #define RFM69_CS     10  // "B"
 #define RFM69_INT     4  // "C"
@@ -97,7 +101,10 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 void setup() {
   Serial.begin(115200);
   //while (!Serial) delay(1); // Wait for Serial Console (comment out line if no computer)
-
+  if (!bmp.begin()) {
+    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+    while (1) {}
+  }
   pinMode(LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
@@ -139,10 +146,10 @@ uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
 uint8_t data[] = "  OK";
 
 void loop() {
-  float temp = 24.5;
   delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
   char radiopacket[50];
-  snprintf(radiopacket, sizeof(radiopacket),"T:%.2f", temp);
+  snprintf(radiopacket, sizeof(radiopacket),"T:%.2f", bmp.readTemperature());
+  itoa(packetnum++, radiopacket+13, 10);
   Serial.println(radiopacket);
   // Send a message to the DESTINATION!
   if (rf69_manager.sendtoWait((uint8_t *)radiopacket, strlen(radiopacket), DEST_ADDRESS)) {

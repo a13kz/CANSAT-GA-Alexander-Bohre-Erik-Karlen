@@ -153,8 +153,6 @@ void debugWrite(){
   Serial.print(", Z: ");
   Serial.print(g.gyro.z);
   Serial.println(" rad/s");
-  
-  file.close();
   delay(100);
 }
 
