@@ -139,12 +139,11 @@ uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
 uint8_t data[] = "  OK";
 
 void loop() {
+  float temp = 24.5;
   delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
-
-  char radiopacket[20] = "Hello World #";
-  itoa(packetnum++, radiopacket+13, 10);
-  Serial.print("Sending "); Serial.println(radiopacket);
-
+  char radiopacket[50];
+  snprintf(radiopacket, sizeof(radiopacket),"T:%.2f", temp);
+  Serial.println(radiopacket);
   // Send a message to the DESTINATION!
   if (rf69_manager.sendtoWait((uint8_t *)radiopacket, strlen(radiopacket), DEST_ADDRESS)) {
     // Now wait for a reply from the server
