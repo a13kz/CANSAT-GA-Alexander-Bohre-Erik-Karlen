@@ -100,11 +100,11 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 void setup() {
   Serial.begin(115200);
-  //while (!Serial) delay(1); // Wait for Serial Console (comment out line if no computer)
-  if (!bmp.begin()) {
-    Serial.println("Could not find a valid BMP085 sensor, check wiring!");
-    while (1) {}
-  }
+  while (!Serial) delay(1); // Wait for Serial Console (comment out line if no computer)
+  //if (!bmp.begin()) {
+  //  Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+  //  while (1) {}
+  //}
   pinMode(LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
@@ -147,10 +147,13 @@ uint8_t data[] = "  OK";
 
 void loop() {
   delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
-  char radiopacket[50];
-  snprintf(radiopacket, sizeof(radiopacket),"T:%.2f", bmp.readTemperature());
+  char radiopacket[50] = "hello#";
+  //snprintf(radiopacket, sizeof(radiopacket),"T:%.2f", bmp.readTemperature());
   itoa(packetnum++, radiopacket+13, 10);
   Serial.println(radiopacket);
+  char radiopacket[20] = "Hello World #";
+  itoa(packetnum++, radiopacket+13, 10);
+  
   // Send a message to the DESTINATION!
   if (rf69_manager.sendtoWait((uint8_t *)radiopacket, strlen(radiopacket), DEST_ADDRESS)) {
     // Now wait for a reply from the server

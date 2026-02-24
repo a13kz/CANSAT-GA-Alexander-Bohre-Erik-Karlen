@@ -160,7 +160,7 @@ void SDWrite() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   Serial.println("Reading...");
-  file = SD.open("reading.txt", FILE_WRITE);
+  file = SD.open("G-KraftsTest.txt", FILE_WRITE);
 
   file.print("Temperature = ");
   file.print(bmp.readTemperature());

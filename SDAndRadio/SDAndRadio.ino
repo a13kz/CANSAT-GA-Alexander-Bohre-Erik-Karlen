@@ -51,14 +51,14 @@ void setup() {
   //while (!Serial) delay(1); // Wait for Serial Console (comment out line if no computer)
   Serial.print("Initializing SD card...");
 
-  if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed. Things to check:");
-    Serial.println("1. is a card inserted?");
-    Serial.println("2. is your wiring correct?");
-    Serial.println("3. did you change the chipSelect pin to match your shield or module?");
-    Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
-    while (1);
-  }
+  //if (!SD.begin(chipSelect)) {
+  //  Serial.println("initialization failed. Things to check:");
+  //  Serial.println("1. is a card inserted?");
+  //  Serial.println("2. is your wiring correct?");
+  //  Serial.println("3. did you change the chipSelect pin to match your shield or module?");
+  //  Serial.println("Note: press reset button on the board and reopen this serial monitor after fixing your issue!");
+  //  while (1);
+  //}
 
   Serial.println("initialization done.");
 
@@ -173,7 +173,7 @@ uint8_t data[] = "  OK";
 
 void loop(){
   radioLoop();
-  SDWrite();
+  //SDWrite();
 }
 
 void SDWrite() {
@@ -205,7 +205,7 @@ void SDWrite() {
   file.print(a.acceleration.y);
   file.print(", Z: ");
   file.print(a.acceleration.z);
-  file.println(" m/s^2");
+  file.println(" m/s^2"); <<<<<<<<<<
 
   file.print("Rotation X: ");
   file.print(g.gyro.x);
@@ -221,8 +221,10 @@ void SDWrite() {
 
 void radioLoop() {
   delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
   char radiopacket[50];
-  snprintf(radiopacket, sizeof(radiopacket),"T:%.2f", bmp.readTemperature());
+  snprintf(radiopacket, sizeof(radiopacket),"A:%.2f", a.acceleration.y);
   itoa(packetnum++, radiopacket+13, 10);
   Serial.println(radiopacket);
   // Send a message to the DESTINATION!

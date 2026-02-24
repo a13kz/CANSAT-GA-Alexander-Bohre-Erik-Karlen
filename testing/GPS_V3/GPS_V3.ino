@@ -2,8 +2,8 @@
 #include <SoftwareSerial.h>
 
 // Define pins for SoftwareSerial
-const int RX_Pin = 1;
-const int TX_Pin = 0;
+const int RX_Pin = 4;
+const int TX_Pin = 3;
 
 const int GPS_Baud_Rate = 9600;
 
