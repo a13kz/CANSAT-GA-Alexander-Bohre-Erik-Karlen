@@ -21,9 +21,7 @@
 #define RFM69_CS   16
 #define RFM69_INT  21
 #define RFM69_RST  17
-#define WARNING_LED        LED_BUILTIN
-//#define COM_LED  25
-
+#define LED        LED_BUILTIN
 
 // Singleton instance of the radio driver
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
@@ -35,8 +33,7 @@ void setup() {
   Serial.begin(115200);
   while (!Serial) delay(1); // Wait for Serial Console (comment out line if no computer)
 
-  //pinMode(COM_LED, OUTPUT);
-  pinMode(WARNING_LED, OUTPUT);
+  pinMode(LED, OUTPUT);
   pinMode(RFM69_RST, OUTPUT);
   digitalWrite(RFM69_RST, LOW);
 
@@ -73,7 +70,8 @@ void setup() {
   Serial.print("RFM69 radio @");  Serial.print((int)RF69_FREQ);  Serial.println(" MHz");
 }
 
-
+// Dont put this on the stack:
+uint8_t data[] = "And hello back to you";
 // Dont put this on the stack:
 uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
 
@@ -87,17 +85,14 @@ void loop() {
       buf[len] = 0; // zero out remaining string
 
       Serial.print("Got packet from #"); Serial.print(from);
-      Serial.print(rf69.lastRssi());
+      //Serial.print(" [RSSI :");
+      //Serial.print(rf69.lastRssi());
+      Serial.print("] : ");
       Serial.println((char*)buf);
-      Blink(COM_LED, 40, 3); // blink LED 3 times, 40ms between blinks
-
-      // if failure
-      if (!rf69_manager.sendtoWait(data, sizeof(data), from))
-        Serial.println("Sending failed (no ack)");
+      Blink(LED, 40, 3); // blink LED 3 times, 40ms between blinks
     }
   }
 }
-
 
 void Blink(byte pin, byte delay_ms, byte loops) {
   while (loops--) {

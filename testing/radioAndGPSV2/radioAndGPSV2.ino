@@ -33,8 +33,8 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 /*********** GPS Setup */
 // Define pins for SoftwareSerial
-const int RX_Pin = 6;
-const int TX_Pin = 5;
+const int RX_Pin = 5;
+const int TX_Pin = 6;
 
 const int GPS_Baud_Rate = 9600;
 
@@ -100,7 +100,7 @@ void loop(){
 void radioLoop(){
   delay(1000);  // Wait 1 second between transmits, could also 'sleep' here!
   char radiopacket[50];
-  snprintf(radiopacket, sizeof(radiopacket),"%.5f|%.5f", gpsModule.location.lat(),gpsModule.location.lng());
+  snprintf(radiopacket, sizeof(radiopacket),"lat%.5f|long%.5f", gpsModule.location.lat(),gpsModule.location.lng());
   itoa(packetnum++, radiopacket+13, 10);
   Serial.print("Sending ");
   Serial.println(radiopacket);
